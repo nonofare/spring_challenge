@@ -169,7 +169,7 @@ public:
 };
 
 long long simulate(const Board *board, const int max_depth, int current_depth) {
-    if (current_depth > max_depth) {
+    if (current_depth >= max_depth) {
         // debug
         cerr << "zbyt gleboko" << endl;
         // debug
@@ -202,8 +202,8 @@ long long simulate(const Board *board, const int max_depth, int current_depth) {
                 for (int i = 0; i < possibilities.size(); i++) {
                     cerr << "wykonuje: " << bitset<4>(possibilities[i]) << endl;
                     Board *new_possible_board = new Board(*board, x, y, possibilities[i]);
-                    board_values_sum += simulate(new_possible_board, max_depth, current_depth);
-                    board_values_sum = board_values_sum % (2 << 30);
+                    board_values_sum = (board_values_sum + simulate(new_possible_board, max_depth, current_depth)) % (
+                                           1 << 30);
                     delete new_possible_board;
                 }
             }
