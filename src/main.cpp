@@ -1,18 +1,5 @@
 #pragma GCC optimize ("O3,inline")
 
-// up + right + down + left - 1111 <-> 15
-// up + right + down        - 1110 <-> 14
-// up + right + left        - 1101 <-> 13
-// up + down + left         - 1011 <-> 11
-// right + down + left      - 0111 <-> 7
-// up + right               - 1100 <-> 12
-// up + down                - 1010 <-> 10
-// right + down             - 0110 <-> 6
-// up + left                - 1001 <-> 9
-// right + left             - 0101 <-> 5
-// down + left              - 0011 <-> 3
-// none                     - 0000 <-> 0
-
 #include <iostream>
 #include <string>
 #include <vector>
@@ -136,6 +123,19 @@ public:
     }
 
     std::vector<int> get_capture_possibilities(const int x, const int y) const {
+        // up + right + down + left - 1111
+        // up + right + down        - 1110
+        // up + right + left        - 1101
+        // up + down + left         - 1011
+        // right + down + left      - 0111
+        // up + right               - 1100
+        // up + down                - 1010
+        // right + down             - 0110
+        // up + left                - 1001
+        // right + left             - 0101
+        // down + left              - 0011
+        // none                     - 0000
+
         std::vector<int> possibilities = std::vector<int>();
 
         int u = get_square_up(x, y);
