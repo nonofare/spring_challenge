@@ -240,7 +240,6 @@ int main() {
         }
     }
 
-    // zwraca hash sumy z hashy dla liczbowej reprezentacji planszy i glebokosci
     auto pair_hash = [](const std::pair<uint64_t, int> &p) -> std::size_t {
         return std::hash<uint64_t>()(p.first) ^ std::hash<int>()(p.second);
     };
