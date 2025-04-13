@@ -1,3 +1,5 @@
+#pragma GCC optimize ("O3,inline")
+
 // up + right + down + left - 1111 <-> 15
 // up + right + down        - 1110 <-> 14
 // up + right + left        - 1101 <-> 13
