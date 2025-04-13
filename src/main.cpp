@@ -15,6 +15,8 @@
 #include <string>
 #include <vector>
 #include <bitset>
+#include <cstdint>
+#include <unordered_map>
 
 #define DIM 3
 
@@ -101,8 +103,8 @@ public:
         return false;
     }
 
-    long long get_int_repr() const {
-        long long num = 0;
+    uint64_t get_int_repr() const {
+        uint64_t num = 0;
 
         for (int i = 0; i < DIM; i++) {
             for (int j = 0; j < DIM; j++) {
@@ -111,7 +113,7 @@ public:
         }
 
         // debug
-        std::cerr << "zwracam wynik: " << num << std::endl << std::endl;
+        // std::cerr << "zwracam wynik: " << num << std::endl << std::endl;
         // debug
 
         return num;
@@ -161,28 +163,34 @@ public:
     }
 };
 
-long long simulate(const Board *board, const int max_depth, int current_depth) {
+template<typename Hash>
+uint64_t simulate(const Board *board, const int max_depth, int current_depth,
+                  std::unordered_map<std::pair<uint64_t, int>, uint64_t, Hash> &cache) {
     if (current_depth >= max_depth) {
         // debug
-        std::cerr << "zbyt gleboko" << std::endl;
+        // std::cerr << "zbyt gleboko" << std::endl;
         // debug
         return board->get_int_repr();
     }
+
+    std::pair<uint64_t, int> key = {board->get_int_repr(), current_depth};
+    if (cache.find(key) != cache.end()) { return cache[key]; }
+
     current_depth++;
 
     // debug
-    std::cerr << "poziom: " << current_depth - 1 << "/" << max_depth << std::endl;
-    std::cerr << board->get_str_repr() << std::endl;
+    // std::cerr << "poziom: " << current_depth - 1 << "/" << max_depth << std::endl;
+    // std::cerr << board->get_str_repr() << std::endl;
     // debug
-
-    long long board_values_sum = 0;
 
     if (board->has_free_square() == false) {
         //debug
-        std::cerr << "brak wolnych miejsc" << std::endl;
+        // std::cerr << "brak wolnych miejsc" << std::endl;
         // debug
         return board->get_int_repr();
     }
+
+    uint64_t board_values_sum = 0;
 
     for (int i = 0; i < DIM; i++) {
         for (int j = 0; j < DIM; j++) {
@@ -190,26 +198,28 @@ long long simulate(const Board *board, const int max_depth, int current_depth) {
                 std::vector<int> possibilities = board->get_capture_possibilities(i, j);
 
                 // debug
-                std::cerr << "nastepne rekurencje dla: [" << i << ", " << j << "] -> ";
-                for (int k = 0; k < possibilities.size(); k++) {
-                    std::cerr << std::bitset<4>(possibilities[k]) << ", ";
-                }
-                std::cerr << std::endl << std::endl;
+                // std::cerr << "nastepne rekurencje dla: [" << i << ", " << j << "] -> ";
+                // for (int k = 0; k < possibilities.size(); k++) {
+                //     std::cerr << std::bitset<4>(possibilities[k]) << ", ";
+                // }
+                // std::cerr << std::endl << std::endl;
                 // debug
 
                 for (int k = 0; k < possibilities.size(); k++) {
                     //debug
-                    std::cerr << "wykonuje: " << std::bitset<4>(possibilities[k]) << std::endl;
+                    // std::cerr << "wykonuje: " << std::bitset<4>(possibilities[k]) << std::endl;
                     //debug
                     Board *new_possible_board = new Board(*board, i, j, possibilities[k]);
-                    board_values_sum = (board_values_sum + simulate(new_possible_board, max_depth, current_depth)) % (
-                                           1 << 30);
+                    board_values_sum =
+                            board_values_sum + simulate(new_possible_board, max_depth, current_depth, cache) &
+                            0x3FFFFFFF;
                     delete new_possible_board;
                 }
             }
         }
     }
 
+    cache[key] = board_values_sum;
     return board_values_sum;
 }
 
@@ -230,7 +240,22 @@ int main() {
         }
     }
 
-    std::cout << simulate(board, depth, 0) << std::endl;
+    // zwraca hash sumy z hashy dla liczbowej reprezentacji planszy i glebokosci
+    auto pair_hash = [](const std::pair<uint64_t, int> &p) -> std::size_t {
+        return std::hash<uint64_t>()(p.first) ^ std::hash<int>()(p.second);
+    };
+
+    // mapa<
+    //     para<
+    //         liczbowa reprezentacja planszy
+    //         glebokosc
+    //         >
+    //     suma koncowych wartosci plansz
+    //     >
+    std::unordered_map<std::pair<uint64_t, int>, uint64_t, decltype(pair_hash)> cache(0, pair_hash);
+    cache.reserve(1000000);
+
+    std::cout << simulate(board, depth, 0, cache) << std::endl;
 
     delete board;
 }
